@@ -18,11 +18,11 @@ public static partial class InferSessExtensions
     }
 
     /// <summary>
-    /// 尝试解析批量信息。
+    /// 尝试解析通道信息。
     /// </summary>
     /// <param name="session">模型连接</param>
-    /// <param name="batch">批量</param>
-    /// <returns>true: 解析批量成功; false: 解析批量失败</returns>
+    /// <param name="channels">通道</param>
+    /// <returns>true: 解析通道成功; false: 解析通道失败</returns>
     public static bool TryParseChannels(this InferenceSession session, out int channels)
     {
         return int.TryParse(session.ModelMetadata.CustomMetadataMap["channels"], out channels);
