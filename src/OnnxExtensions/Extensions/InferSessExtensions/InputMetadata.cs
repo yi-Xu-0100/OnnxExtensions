@@ -5,7 +5,7 @@ using Microsoft.ML.OnnxRuntime;
 
 namespace OnnxExtensions.Extensions;
 
-public static partial class InferSessExtensions
+public static partial class InferSessionExtensions
 {
     /// <summary>
     /// 获取模型输入图片尺寸信息。

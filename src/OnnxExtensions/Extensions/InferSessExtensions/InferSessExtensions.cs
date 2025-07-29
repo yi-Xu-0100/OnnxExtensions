@@ -10,7 +10,7 @@ namespace OnnxExtensions.Extensions;
 /// <summary>
 /// InferenceSession 类的辅助方法。
 /// </summary>
-public static partial class InferSessExtensions
+public static partial class InferSessionExtensions
 {
     /// <summary>
     /// 转换到 Onnx 模型类
