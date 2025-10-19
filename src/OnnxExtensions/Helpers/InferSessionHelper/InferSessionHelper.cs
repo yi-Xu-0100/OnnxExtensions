@@ -22,11 +22,14 @@ public static class InferSessionHelper
     /// <param name="sessionOptions">会话选项</param>
     /// <returns>新的 InferenceSession 实例</returns>
     /// <exception cref="FileNotFoundException">如果找不到指定的资源，将抛出 FileNotFoundException。</exception>
-    public static InferenceSession LoadEmbeddedOnnxModel(string resourceName, SessionOptions? sessionOptions = null)
+    public static InferenceSession LoadEmbeddedOnnxModel(string resourceName, Assembly assembly, SessionOptions? sessionOptions = null)
     {
-        using Stream stream =
-            Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName)
-            ?? throw new FileNotFoundException("Not Found Embedded .Onnx Model({resourceName})})");
+        string[] resourceNames = assembly.GetManifestResourceNames();
+        if (!Array.Exists(resourceNames, r => r == resourceName))
+        {
+            throw new FileNotFoundException($"Not Found Embedded .Onnx Model({resourceName}) in {assembly.GetName().Name}");
+        }
+        using Stream stream = assembly.GetManifestResourceStream(resourceName)!;
 
         // 将流复制到内存中（OnnxRuntime 要求可 seek 的 Stream）
         using var memoryStream = new MemoryStream();

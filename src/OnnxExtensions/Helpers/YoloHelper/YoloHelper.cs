@@ -14,7 +14,7 @@ namespace OnnxExtensions.Helpers;
 /// </summary>
 public static class YoloHelper
 {
-    internal static List<ModelPrediction> ParseOutput(
+    public static List<ModelPrediction> ParseOutput(
         IDisposableReadOnlyCollection<DisposableNamedOnnxValue> outputs,
         Image<Rgb24> image,
         float conf,
