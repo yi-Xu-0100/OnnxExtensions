@@ -2,8 +2,7 @@
 // This file is licensed under the MIT License. See LICENSE for details.
 
 using Microsoft.ML.OnnxRuntime.Tensors;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
+using OpenCvSharp;
 
 namespace OnnxExtensions.Extensions;
 
@@ -13,35 +12,59 @@ namespace OnnxExtensions.Extensions;
 public static class DenseTensorExtensions
 {
     /// <summary>
-    /// 将 <see cref="Image{Rgb24}"/> 转换为 N,C,H,W 格式的 <see cref="DenseTensor{Float}"/>，
-    /// 并把像素值归一化到 [0, 1] 区间。
-    /// 返回张量的形状为 [1, 3, height, width].
+    /// 高性能：将 OpenCvSharp Mat 转换为 3 通道 <see cref="DenseTensor&lt;float&gt;"/>
+    /// 输出 shape: [1, 3, height, width]，值归一化到 [0,1]
+    /// 支持灰度图和 BGR 彩色图
     /// </summary>
-    /// <param name="image">待转换的 RGB24 图像。</param>
-    /// <returns>形状为 [1, 3, height, width] 的浮点张量。</returns>
-    public static DenseTensor<float> To3ChDenseTensorFloat(Image<Rgb24> image)
+    public static unsafe DenseTensor<float> To3ChDenseTensorFloatFast(Mat image)
     {
         int width = image.Width;
         int height = image.Height;
+        int channels = image.Channels();
 
-        var tensor = new DenseTensor<float>([1, 3, height, width]);
+        var tensor = new DenseTensor<float>(new[] { 1, 3, height, width });
 
-        image.ProcessPixelRows(accessor =>
+        byte* ptr = image.DataPointer;
+
+        int step = (int)image.Step(); // 每行字节数
+
+        if (channels == 3)
         {
+            // 彩色 BGR
             for (int y = 0; y < height; y++)
             {
-                Span<Rgb24> pixelRow = accessor.GetRowSpan(y);
-
+                byte* rowPtr = ptr + y * step;
                 for (int x = 0; x < width; x++)
                 {
-                    Rgb24 pixel = pixelRow[x];
+                    byte b = rowPtr[x * 3 + 0];
+                    byte g = rowPtr[x * 3 + 1];
+                    byte r = rowPtr[x * 3 + 2];
 
-                    tensor[0, 0, y, x] = pixel.R / 255f;
-                    tensor[0, 1, y, x] = pixel.G / 255f;
-                    tensor[0, 2, y, x] = pixel.B / 255f;
+                    tensor[0, 0, y, x] = r / 255f; // R
+                    tensor[0, 1, y, x] = g / 255f; // G
+                    tensor[0, 2, y, x] = b / 255f; // B
                 }
             }
-        });
+        }
+        else if (channels == 1)
+        {
+            // 灰度图
+            for (int y = 0; y < height; y++)
+            {
+                byte* rowPtr = ptr + y * step;
+                for (int x = 0; x < width; x++)
+                {
+                    float normalized = rowPtr[x] / 255f;
+                    tensor[0, 0, y, x] = normalized;
+                    tensor[0, 1, y, x] = normalized;
+                    tensor[0, 2, y, x] = normalized;
+                }
+            }
+        }
+        else
+        {
+            throw new ArgumentException("不支持的通道数：" + channels);
+        }
 
         return tensor;
     }

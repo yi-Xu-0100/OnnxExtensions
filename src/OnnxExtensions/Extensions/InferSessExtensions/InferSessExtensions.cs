@@ -17,9 +17,9 @@ public static partial class InferSessionExtensions
     /// </summary>
     /// <param name="session">模型连接</param>
     /// <returns></returns>
-    public static OnnxModel ToOnnxModel(this InferenceSession session)
+    public static OnnxModel ToOnnxModel(this InferenceSession session, ModelTaskDef taskDef = ModelTaskDef.Detect)
     {
-        OnnxModel onnxModel = new(session.InputDimensions(), session.OutputDimensions(), session.Outputs(), []);
+        OnnxModel onnxModel = new(session.InputDimensions(), session.OutputDimensions(), session.Outputs(), [], taskDef);
 
         Dictionary<int, string> classes = session.ParseNames();
 
