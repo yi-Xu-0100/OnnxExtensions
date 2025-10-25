@@ -16,7 +16,7 @@ public static class DenseTensorExtensions
     /// 输出 shape: [1, 3, height, width]，值归一化到 [0,1]
     /// 支持灰度图和 BGR 彩色图
     /// </summary>
-    public static unsafe DenseTensor<float> To3ChDenseTensorFloatFast(Mat image)
+    public static unsafe DenseTensor<float> To3ChDenseTensorFloat(Mat image)
     {
         int width = image.Width;
         int height = image.Height;
