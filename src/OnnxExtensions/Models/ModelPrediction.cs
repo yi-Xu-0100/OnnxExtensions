@@ -2,6 +2,7 @@
 // This file is licensed under the MIT License. See LICENSE for details.
 
 using System.Drawing;
+using OpenCvSharp;
 
 namespace OnnxExtensions.Models;
 
@@ -22,7 +23,7 @@ public class ModelPrediction
     /// 预测的矩形区域
     /// 用于表示目标在图像中的位置。
     /// </summary>
-    public Rectangle Rectangle { get; set; }
+    public RotatedRect Rectangle { get; set; }
 
     /// <summary>
     /// 预测的置信度分数
@@ -35,7 +36,7 @@ public class ModelPrediction
     /// <param name="label">预测的模型标签</param>
     /// <param name="rectangle">预测的矩形区域</param>
     /// <param name="score">预测的置信度分数</param>
-    public ModelPrediction(ModelLabel label, Rectangle rectangle, float score)
+    public ModelPrediction(ModelLabel label, RotatedRect rectangle, float score)
     {
         Label = label;
         Score = score;

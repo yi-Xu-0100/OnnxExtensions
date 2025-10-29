@@ -73,11 +73,14 @@ public static class YoloHelper
             x2 = Math.Clamp(x2, 0, imageWidth);
             y2 = Math.Clamp(y2, 0, imageHeight);
 
+            var center = new Point2f((x1 + x2) /2, (y1 + y2) /2);
+
             float width = x2 - x1;
             float height = y2 - y1;
+            var size = new Size2f(width, height);
 
             var label = model.Labels[classId];
-            var rect = new Rectangle((int)x1, (int)y1, (int)width, (int)height);
+            var rect = new RotatedRect(center, size, 0);
             result.Add(new(label, rect, score));
         }
 
@@ -85,49 +88,61 @@ public static class YoloHelper
     }
 
 
+    /// <summary>
+    /// 解析 YOLO Oriented Bounding Box 输出
+    /// </summary>
     private static List<ModelPrediction> ParseOrientedBoundingBoxes(
         DenseTensor<float> output,
         Mat image,
         float confThreshold,
-        OnnxModel model
-    )
+        OnnxModel model)
     {
-        List<ModelPrediction> result = [];
+        List<ModelPrediction> result = new();
 
-        // [1, 300, 6]
         ReadOnlySpan<int> dims = output.Dimensions;
         int numDetections = dims[1];
 
-        float imageWidth = image.Width;
-        float imageHeight = image.Height;
+        float imgW = image.Width;
+        float imgH = image.Height;
 
         for (int i = 0; i < numDetections; i++)
         {
-            float x1 = output[0, i, 0];
-            float y1 = output[0, i, 1];
-            float x2 = output[0, i, 2];
-            float y2 = output[0, i, 3];
+            float cx = output[0, i, 0];
+            float cy = output[0, i, 1];
+            float w = output[0, i, 2];
+            float h = output[0, i, 3];
             float score = output[0, i, 4];
             int classId = (int)output[0, i, 5];
+            float angle = output[0, i, 6]; // 单位通常是度或弧度，需确认
 
             if (score < confThreshold || classId >= model.Labels.Count)
                 continue;
 
-            // 确保坐标在图像范围内
-            x1 = Math.Clamp(x1, 0, imageWidth);
-            y1 = Math.Clamp(y1, 0, imageHeight);
-            x2 = Math.Clamp(x2, 0, imageWidth);
-            y2 = Math.Clamp(y2, 0, imageHeight);
+            // 坐标范围裁剪
+            // cx = Math.Clamp(cx, 0, imgW);
+            // cy = Math.Clamp(cy, 0, imgH);
+            // w = Math.Max(1, Math.Min(w, imgW));
+            // h = Math.Max(1, Math.Min(h, imgH));
 
-            float width = x2 - x1;
-            float height = y2 - y1;
+            // 创建旋转矩形
+            var center = new Point2f(cx, cy);
+            var size = new Size2f(w, h);
+
+            // YOLO-OBB 输出角度一般是弧度（部分实现是度）
+            // 如果发现旋转角度不对，可改成 angle * 180f / MathF.PI
+            var rotatedRect = new RotatedRect(center, size, angle* 180f / MathF.PI);
+
+            // 四点坐标
+            Point2f[] vertices = rotatedRect.Points();
 
             var label = model.Labels[classId];
-            var rect = new Rectangle((int)x1, (int)y1, (int)width, (int)height);
-            result.Add(new(label, rect, score));
+
+            // 可根据需要自定义 ModelPrediction
+            result.Add(new (label, rotatedRect, score));
         }
 
         return result;
     }
+
 
 }

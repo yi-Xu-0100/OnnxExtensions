@@ -12,7 +12,7 @@ namespace OnnxExtensions.Extensions;
 public static class DenseTensorExtensions
 {
     /// <summary>
-    /// 高性能：将 OpenCvSharp Mat 转换为 3 通道 <see cref="DenseTensor&lt;float&gt;"/>
+    /// 将 OpenCvSharp Mat 转换为 3 通道 <see cref="DenseTensor&lt;float&gt;"/>
     /// 输出 shape: [1, 3, height, width]，值归一化到 [0,1]
     /// 支持灰度图和 BGR 彩色图
     /// </summary>
